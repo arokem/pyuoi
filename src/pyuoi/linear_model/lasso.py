@@ -243,6 +243,7 @@ class UoI_Lasso(AbstractUoILinearRegressor, LinearRegression):
                 tol=tol)
 
         self._estimation_lm = LinearRegression(fit_intercept=fit_intercept)
+        self.positive = False
 
     def get_reg_params(self, X, y):
         alphas = _alpha_grid(
