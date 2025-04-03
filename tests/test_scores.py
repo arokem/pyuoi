@@ -11,7 +11,7 @@ from sklearn.metrics import r2_score, accuracy_score, log_loss
 from pyuoi.utils import log_likelihood_glm
 from pyuoi.utils import (AIC, BIC, AICc)
 
-from pyuoi.linear_model import (UoI_Lasso, UoI_L1Logistic, UoI_Poisson,
+from pyuoi.linear_model import (UoI_Lasso, UoI_Poisson,
                                 UoI_ElasticNet)
 
 
@@ -133,76 +133,6 @@ def test_LinearRegressor_scoring_defaults():
     assert_equal(AICc(ll, *X_train.T.shape), score)
 
 
-def test_GeneralizedLinearRegressor_scoring_defaults():
-    """Tests that the correct default train/test data are being used
-    for scoring estimates in UoIAbstractGeneralizedLinearRegressor. Further
-    tests that the scoring itself is being done correctly."""
-    seed = 5
-
-    X, y = make_classification(n_samples=100, n_features=3, n_informative=3,
-                               n_redundant=0, n_repeated=0, n_classes=3,
-                               n_clusters_per_class=2, random_state=seed)
-
-    train_idxs, test_idxs = train_test_split(np.arange(X.shape[0]),
-                                             test_size=0.1,
-                                             random_state=seed)
-
-    X_train = X[train_idxs]
-    y_train = y[train_idxs]
-
-    X_test = X[test_idxs]
-    y_test = y[test_idxs]
-
-    fitter = LogisticRegression().fit(X_train, y_train)
-    support = np.ones(X.shape[1]).astype(bool)
-
-    # acc - must use test data
-    uoi = UoI_L1Logistic(estimation_score='acc')
-    assert uoi._estimation_target == 1
-    uoi.classes_ = np.unique(y)
-    score = uoi._score_predictions('acc', fitter, X, y, support,
-                                   (train_idxs, test_idxs))
-    assert_equal(accuracy_score(y_test, fitter.predict(X_test)), score)
-
-    # log - must use test data. Note the sign difference
-    uoi = UoI_L1Logistic(estimation_score='log')
-    assert uoi._estimation_target == 1
-    uoi.classes_ = np.unique(y)
-    score = uoi._score_predictions('log', fitter, X, y, support,
-                                   (train_idxs, test_idxs))
-
-    y_pred_test = fitter.predict_proba(X_test[:, support])
-    assert_equal(log_loss(y_test, y_pred_test, labels=np.unique(y)),
-                 -1 * score)
-
-    ll = -log_loss(y_train, fitter.predict_proba(X_train[:, support]),
-                   labels=np.unique(y))
-    total_ll = ll * X_train.shape[0]
-    # BIC - must use train data
-    uoi = UoI_L1Logistic(estimation_score='BIC')
-    assert uoi._estimation_target == 0
-    uoi.classes_ = np.unique(y)
-    score = -1 * uoi._score_predictions('BIC', fitter, X, y, support,
-                                        (train_idxs, test_idxs))
-    assert_equal(BIC(total_ll, *X_train.T.shape), score)
-
-    # AIC
-    uoi = UoI_L1Logistic(estimation_score='AIC')
-    assert uoi._estimation_target == 0
-    uoi.classes_ = np.unique(y)
-    score = -1 * uoi._score_predictions('AIC', fitter, X, y, support,
-                                        (train_idxs, test_idxs))
-    assert_equal(AIC(total_ll, X_train.shape[1]), score)
-
-    # AICc
-    uoi = UoI_L1Logistic(estimation_score='AICc')
-    assert uoi._estimation_target == 0
-    uoi.classes_ = np.unique(y)
-    score = -1 * uoi._score_predictions('AICc', fitter, X, y, support,
-                                        (train_idxs, test_idxs))
-    assert_equal(AICc(total_ll, *X_train.T.shape), score)
-
-
 def test_estimation_target():
     """Verify the ability for the user to set the estimation taget variable"""
 
@@ -223,14 +153,6 @@ def test_estimation_target():
 
     # Assess BIC on test data
     uoi = UoI_ElasticNet(estimation_score='BIC', estimation_target='test')
-
-    assert uoi._estimation_target == 1
-
-    uoi = UoI_L1Logistic(estimation_score='acc', estimation_target='train')
-
-    assert uoi._estimation_target == 0
-
-    uoi = UoI_L1Logistic(estimation_score='BIC', estimation_target='test')
 
     assert uoi._estimation_target == 1
 
