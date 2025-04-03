@@ -3,10 +3,10 @@ from numpy.testing import assert_almost_equal
 from numpy.testing import assert_equal
 from numpy.testing import assert_raises
 
-from sklearn.datasets import make_regression, make_classification
+from sklearn.datasets import make_regression
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression, LogisticRegression
-from sklearn.metrics import r2_score, accuracy_score, log_loss
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
 
 from pyuoi.utils import log_likelihood_glm
 from pyuoi.utils import (AIC, BIC, AICc)
