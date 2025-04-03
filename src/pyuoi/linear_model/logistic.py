@@ -7,7 +7,7 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.utils import (check_X_y, compute_class_weight,
                            check_consistent_length, check_array)
 from sklearn.utils.multiclass import check_classification_targets
-from sklearn.utils.extmath import safe_sparse_dot, log_logistic, squared_norm
+from sklearn.utils.extmath import safe_sparse_dot, squared_norm
 from sklearn.preprocessing import StandardScaler
 
 from scipy.optimize import minimize
@@ -823,7 +823,7 @@ def _logistic_loss_and_grad(w, X, y, alpha, mask, sample_weight=None):
         sample_weight = np.ones(n_samples)
 
     # Logistic loss is the negative of the log of the logistic function.
-    out = -np.sum(sample_weight * log_logistic(yz)) / n_samples
+    out = -np.sum(sample_weight * -np.logaddexp(0, -yz)) / n_samples
     out += .5 * alpha * np.dot(w, w)
 
     z = expit(yz)
